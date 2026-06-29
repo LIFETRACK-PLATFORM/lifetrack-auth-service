@@ -1,0 +1,4 @@
+export const CREDENTIAL_REPOSITORY = Symbol('CREDENTIAL_REPOSITORY');
+export const PASSWORD_HASHER = Symbol('PASSWORD_HASHER');
+export const EVENT_PUBLISHER = Symbol('EVENT_PUBLISHER');
+export const TOKEN_SERVICE = Symbol('TOKEN_SERVICE');

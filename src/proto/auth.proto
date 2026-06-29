@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package lifetrack.auth;
+
+service AuthService {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string displayName = 3;
+  repeated string roles = 4;
+}
+
+message RegisterResponse {
+  string credentialId = 1;
+  string userId = 2;
+  string email = 3;
+  repeated string roles = 4;
+  string status = 5;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string accessToken = 1;
+  string userId = 2;
+  string email = 3;
+  repeated string roles = 4;
+  string status = 5;
+}

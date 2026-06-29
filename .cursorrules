@@ -1,0 +1,28 @@
+# Clean / Hexagonal Architecture & DDD Rules for NestJS
+
+You must follow these strict architectural and coding rules for this NestJS codebase.
+
+## 1. Feature-First Directory Structure (Vertical Slicing)
+Group code by business capability (e.g. `src/auth/`) rather than technical type. Every module has the following internal structure:
+*   `domain/`: Pure TypeScript. Domain entities, value objects, domain events, and ports (interfaces). No imports from `@nestjs/common`, ORMs, or external systems.
+*   `application/`: Pure TypeScript. Use cases and application input models. No NestJS decorators (no `@Injectable`, `@Inject`).
+*   `infrastructure/`: NestJS-dependent adapters. DB repositories (Prisma/TypeORM implementation), message brokers, HTTP client adapters.
+*   `presentation/`: Entry points. Controllers (HTTP/gRPC), request DTOs (using `class-validator`), and exception filters.
+
+## 2. Decoupling Use Cases from NestJS
+Use cases must remain pure TypeScript classes without `@Injectable()` or `@Inject()` decorators.
+Wire dependencies in the module using factories:
+```typescript
+{
+  provide: RegisterUseCase,
+  useFactory: (repo, hasher) => new RegisterUseCase(repo, hasher),
+  inject: [CREDENTIAL_REPOSITORY, PASSWORD_HASHER],
+}
+```
+
+## 3. Rich Domain & Value Objects
+*   **No Anemic Models**: Entities must protect their business rules (invariants) in their constructors.
+*   **Value Objects**: Use immutable Value Objects for complex fields (e.g., `Email`, `PasswordHash`) to enforce validation on creation.
+
+## 4. Mappers for Database Models
+Never expose database types (like Prisma generated types or database entities) to the domain or application layers. Use a `Mapper` class inside `infrastructure/` to map DB models to/from Domain Entities.
