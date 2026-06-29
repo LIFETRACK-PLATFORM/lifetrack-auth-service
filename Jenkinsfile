@@ -42,28 +42,16 @@ pipeline {
         sh "docker build -t auth-service:${env.BUILD_NUMBER} ."
       }
     }
-
-    stage("Deploy") {
-      steps {
-        sh "docker network create lifetrack-net || true"
-        sh "docker stop auth-service || true"
-        sh "docker rm auth-service || true"
-        sh """
-          docker run -d --name auth-service \
-            --network lifetrack-net \
-            --restart unless-stopped \
-            auth-service:${env.BUILD_NUMBER}
-        """
-      }
-    }
   }
 
   post {
     success {
       echo "Pipeline OK - auth-service #${env.BUILD_NUMBER}"
+      githubNotify status: 'SUCCESS', context: 'jenkins-ci', description: 'CI passed'
     }
     failure {
       echo "Pipeline FAILED - auth-service #${env.BUILD_NUMBER}"
+      githubNotify status: 'FAILURE', context: 'jenkins-ci', description: 'CI failed'
     }
   }
 }
