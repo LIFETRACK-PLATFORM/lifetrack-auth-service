@@ -47,11 +47,11 @@ pipeline {
   post {
     success {
       echo "Pipeline OK - auth-service #${env.BUILD_NUMBER}"
-      githubNotify status: 'SUCCESS', context: 'jenkins-ci', description: 'CI passed'
+      githubNotify credentialsId: 'github-token-userpass', status: 'SUCCESS', context: 'jenkins-ci', description: 'CI passed'
     }
     failure {
       echo "Pipeline FAILED - auth-service #${env.BUILD_NUMBER}"
-      githubNotify status: 'FAILURE', context: 'jenkins-ci', description: 'CI failed'
+      githubNotify credentialsId: 'github-token-userpass', status: 'FAILURE', context: 'jenkins-ci', description: 'CI failed'
     }
   }
 }
