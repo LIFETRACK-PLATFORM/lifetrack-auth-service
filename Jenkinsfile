@@ -13,6 +13,12 @@ pipeline {
       }
     }
 
+    stage("Prisma Generate") {
+      steps {
+        sh "pnpm exec prisma generate"
+      }
+    }
+
     stage("Lint") {
       steps {
         sh "pnpm run lint"
