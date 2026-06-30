@@ -17,6 +17,7 @@ pipeline {
           docker run -d --name auth-service \
             --network lifetrack-net \
             --restart unless-stopped \
+            --env-file /opt/lifetrack/envs/auth-service.env \
             auth-service:${env.BUILD_NUMBER}
         """
       }
