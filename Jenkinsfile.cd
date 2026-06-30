@@ -15,7 +15,7 @@ pipeline {
             --network lifetrack-net \
             --env-file /home/ricardo/lifetrack-infra/envs/auth-service.env \
             auth-service:${env.BUILD_NUMBER} \
-            npx prisma migrate deploy
+            node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
         """
       }
     }
