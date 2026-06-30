@@ -15,7 +15,7 @@ pipeline {
 
     stage("Prisma Generate") {
       steps {
-        sh "pnpm exec prisma generate"
+        sh "DATABASE_URL=postgresql://ci:ci@localhost:5432/ci pnpm exec prisma generate"
       }
     }
 
