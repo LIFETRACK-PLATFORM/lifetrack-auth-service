@@ -8,6 +8,18 @@ pipeline {
       }
     }
 
+    stage("Migrate") {
+      steps {
+        sh """
+          docker run --rm \
+            --network lifetrack-net \
+            --env-file /home/ricardo/lifetrack-infra/envs/auth-service.env \
+            auth-service:${env.BUILD_NUMBER} \
+            npx prisma migrate deploy
+        """
+      }
+    }
+
     stage("Deploy") {
       steps {
         sh "docker network create lifetrack-net || true"
