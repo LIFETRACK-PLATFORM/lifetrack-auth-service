@@ -24,4 +24,4 @@ COPY --from=deps /app/node_modules ./node_modules
 USER nestjs
 EXPOSE 3000
 HEALTHCHECK --interval=30s CMD wget -qO- http://localhost:3000/health || exit 1
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
