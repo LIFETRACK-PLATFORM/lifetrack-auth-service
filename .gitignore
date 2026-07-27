@@ -47,6 +47,9 @@ lerna-debug.log*
 .temp
 .tmp
 
+# Backups de scripts/reset-dev-users.ts (contienen hashes y emails reales)
+/scripts/backups/
+
 # Runtime data
 pids
 *.pid

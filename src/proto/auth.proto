@@ -5,6 +5,13 @@ package lifetrack.auth;
 service AuthService {
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
+  rpc Refresh (RefreshRequest) returns (LoginResponse);
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc Me (MeRequest) returns (MeResponse);
+  rpc ForgotPassword (ForgotPasswordRequest) returns (ForgotPasswordResponse);
+  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse);
+  rpc ConfirmEmail (ConfirmEmailRequest) returns (ConfirmEmailResponse);
 }
 
 message RegisterRequest {
@@ -29,8 +36,67 @@ message LoginRequest {
 
 message LoginResponse {
   string accessToken = 1;
-  string userId = 2;
-  string email = 3;
-  repeated string roles = 4;
-  string status = 5;
+  string refreshToken = 2;
+  string userId = 3;
+  string email = 4;
+  repeated string roles = 5;
+  string status = 6;
+}
+
+message RefreshRequest {
+  string refreshToken = 1;
+}
+
+message LogoutRequest {
+  string refreshToken = 1;
+}
+
+message LogoutResponse {
+  bool success = 1;
+}
+
+message ValidateTokenRequest {
+  string accessToken = 1;
+}
+
+message ValidateTokenResponse {
+  string sub = 1;
+  string email = 2;
+  repeated string roles = 3;
+}
+
+message MeRequest {
+  string refreshToken = 1;
+}
+
+message MeResponse {
+  string userId = 1;
+  string email = 2;
+  repeated string roles = 3;
+  string status = 4;
+}
+
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ForgotPasswordResponse {
+  bool success = 1;
+}
+
+message ResetPasswordRequest {
+  string token = 1;
+  string newPassword = 2;
+}
+
+message ResetPasswordResponse {
+  bool success = 1;
+}
+
+message ConfirmEmailRequest {
+  string token = 1;
+}
+
+message ConfirmEmailResponse {
+  bool success = 1;
 }

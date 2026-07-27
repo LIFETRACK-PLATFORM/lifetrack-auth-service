@@ -17,3 +17,41 @@ export class InactiveAccountError extends DomainError {
     super('La cuenta no está activa');
   }
 }
+
+export class InvalidRefreshTokenError extends DomainError {
+  constructor() {
+    super('Sesión inválida, inicia sesión nuevamente');
+  }
+}
+
+export class InvalidAccessTokenError extends DomainError {
+  constructor() {
+    super('Token inválido');
+  }
+}
+
+export class AccountLockedError extends DomainError {
+  constructor() {
+    super(
+      'La cuenta está bloqueada temporalmente. Intenta nuevamente más tarde',
+    );
+  }
+}
+
+export class InvalidPasswordResetTokenError extends DomainError {
+  constructor() {
+    super('El enlace de restablecimiento no es válido o ya expiró');
+  }
+}
+
+export class EmailNotVerifiedError extends DomainError {
+  constructor() {
+    super('Debes confirmar tu email antes de iniciar sesión');
+  }
+}
+
+export class InvalidEmailVerificationTokenError extends DomainError {
+  constructor() {
+    super('El enlace de confirmación no es válido o ya expiró');
+  }
+}
