@@ -23,6 +23,20 @@ pipeline {
       }
     }
 
+    stage("Docker Login (VPS)") {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'github-token-userpass', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+          sshagent(['vps-ssh']) {
+            sh """
+              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS} '
+                echo ${GH_TOKEN} | docker login ghcr.io -u ${GH_USER} --password-stdin
+              '
+            """
+          }
+        }
+      }
+    }
+
     stage("Migrate") {
       steps {
         sshagent(['vps-ssh']) {
