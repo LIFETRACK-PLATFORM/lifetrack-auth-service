@@ -1,4 +1,5 @@
 import { randomUUID, randomBytes, createHash } from 'crypto';
+import { Logger } from '@nestjs/common';
 import {
   AuthRole,
   CredentialEntity,
@@ -13,6 +14,8 @@ import type { EmailSenderPort } from '../../domain/ports/email-sender.port';
 import type { RegisterInput } from '../dtos/register.input';
 
 export class RegisterUseCase {
+  private readonly logger = new Logger(RegisterUseCase.name);
+
   constructor(
     private readonly credentialRepository: CredentialRepositoryPort,
     private readonly passwordHasher: PasswordHasherPort,
@@ -103,10 +106,18 @@ export class RegisterUseCase {
     const verifyUrl = `${this.verificationUrlBase}?token=${token}`;
     try {
       await this.emailSender.sendEmailVerification(email, verifyUrl);
-    } catch {
+    } catch (err) {
       // Un fallo del proveedor de correo no debe revertir una cuenta ya
       // creada: no hay nada que compensar, y el usuario puede reintentar
-      // el flujo de recuperación más adelante (ver design.md).
+      // el flujo de reenvío más adelante (ver design.md). Sí se loguea,
+      // porque antes este catch vacío ocultaba por completo cualquier
+      // excepción real del envío (aparte del error ya logueado dentro
+      // del adapter cuando Resend responde con { error }).
+      this.logger.error(
+        `Excepción al enviar email de verificación a ${email}: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
     }
   }
 }
