@@ -26,19 +26,19 @@ describe('CredentialEntity', () => {
 
   it('lanza error si falta el email', () => {
     expect(() => new CredentialEntity({ ...baseProps, email: '' })).toThrow(
-      'Email is required',
+      'El email es obligatorio',
     );
   });
 
   it('lanza error si falta el passwordHash', () => {
     expect(
       () => new CredentialEntity({ ...baseProps, passwordHash: '' }),
-    ).toThrow('Password hash is required');
+    ).toThrow('El hash de la contraseña es obligatorio');
   });
 
   it('lanza error si no tiene al menos un rol', () => {
     expect(() => new CredentialEntity({ ...baseProps, roles: [] })).toThrow(
-      'At least one role is required',
+      'Se requiere al menos un rol',
     );
   });
 

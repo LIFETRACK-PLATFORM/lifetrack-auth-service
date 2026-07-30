@@ -55,3 +55,17 @@ export class InvalidEmailVerificationTokenError extends DomainError {
     super('El enlace de confirmación no es válido o ya expiró');
   }
 }
+
+export class InvalidCredentialDataError extends DomainError {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class AccountAlreadyVerifiedError extends DomainError {
+  constructor() {
+    super(
+      'Solo una cuenta pendiente de verificación puede activarse por este medio',
+    );
+  }
+}
