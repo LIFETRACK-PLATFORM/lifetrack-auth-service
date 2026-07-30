@@ -4,7 +4,9 @@ import { CleanupExpiredRegistrationsUseCase } from '../../../application/use-cas
 
 @Injectable()
 export class CleanupExpiredRegistrationsScheduler {
-  private readonly logger = new Logger(CleanupExpiredRegistrationsScheduler.name);
+  private readonly logger = new Logger(
+    CleanupExpiredRegistrationsScheduler.name,
+  );
 
   constructor(
     private readonly cleanupExpiredRegistrationsUseCase: CleanupExpiredRegistrationsUseCase,
@@ -12,7 +14,8 @@ export class CleanupExpiredRegistrationsScheduler {
 
   @Cron(CronExpression.EVERY_WEEK)
   async handleCleanup(): Promise<void> {
-    const deletedCount = await this.cleanupExpiredRegistrationsUseCase.execute();
+    const deletedCount =
+      await this.cleanupExpiredRegistrationsUseCase.execute();
     if (deletedCount > 0) {
       this.logger.log(
         `Se eliminaron ${deletedCount} cuentas nunca confirmadas`,

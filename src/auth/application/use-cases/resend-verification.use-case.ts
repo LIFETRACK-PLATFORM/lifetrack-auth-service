@@ -14,9 +14,7 @@ export class ResendVerificationUseCase {
   ) {}
 
   async execute(input: ResendVerificationInput): Promise<void> {
-    const credential = await this.credentialRepository.findByEmail(
-      input.email,
-    );
+    const credential = await this.credentialRepository.findByEmail(input.email);
 
     // No revela si la cuenta existe ni su estado: solo se reenvía cuando hay
     // una credencial pendiente de verificación; la respuesta al llamador es

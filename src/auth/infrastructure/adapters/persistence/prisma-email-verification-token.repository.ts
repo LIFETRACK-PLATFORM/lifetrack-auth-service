@@ -8,9 +8,7 @@ import type {
 import { EmailVerificationTokenMapper } from './email-verification-token.mapper';
 
 @Injectable()
-export class PrismaEmailVerificationTokenRepository
-  implements EmailVerificationTokenRepositoryPort
-{
+export class PrismaEmailVerificationTokenRepository implements EmailVerificationTokenRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(

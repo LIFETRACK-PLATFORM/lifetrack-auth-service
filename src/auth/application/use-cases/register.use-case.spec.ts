@@ -9,7 +9,9 @@ import { EmailAlreadyExistsError } from '../../domain/exceptions/auth.errors';
 const TOKEN_TTL_MS = 24 * 60 * 60_000;
 const VERIFICATION_URL_BASE = 'http://localhost:3000/confirm-email';
 
-function buildCredential(status: CredentialStatus = CredentialStatus.PENDING_VERIFICATION) {
+function buildCredential(
+  status: CredentialStatus = CredentialStatus.PENDING_VERIFICATION,
+) {
   return new CredentialEntity(
     {
       userId: 'user-1',
@@ -106,7 +108,9 @@ describe('RegisterUseCase', () => {
     });
 
     expect(credentialRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ status: CredentialStatus.PENDING_VERIFICATION }),
+      expect.objectContaining({
+        status: CredentialStatus.PENDING_VERIFICATION,
+      }),
     );
     expect(result.status).toBe(CredentialStatus.PENDING_VERIFICATION);
     expect(emailVerificationTokenRepository.create).toHaveBeenCalledWith(
