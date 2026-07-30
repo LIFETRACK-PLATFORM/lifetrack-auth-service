@@ -1,5 +1,9 @@
 import { randomUUID, randomBytes, createHash } from 'crypto';
-import { AuthRole, CredentialStatus } from '../../domain/entities/credential.entity';
+import {
+  AuthRole,
+  CredentialEntity,
+  CredentialStatus,
+} from '../../domain/entities/credential.entity';
 import { EmailAlreadyExistsError } from '../../domain/exceptions/auth.errors';
 import type { CredentialRepositoryPort } from '../../domain/ports/credential.repository.port';
 import type { PasswordHasherPort } from '../../domain/ports/password-hasher.port';
@@ -21,7 +25,23 @@ export class RegisterUseCase {
 
   async execute(input: RegisterInput) {
     const existing = await this.credentialRepository.findByEmail(input.email);
-    if (existing) throw new EmailAlreadyExistsError(input.email);
+    if (existing && !existing.isPendingVerification()) {
+      throw new EmailAlreadyExistsError(input.email);
+    }
+
+    if (existing) {
+      // Reintento de registro sobre una cuenta que nunca se confirmó: en vez
+      // de bloquear el email para siempre, se trata como un reenvío de
+      // verificación (ver design.md - Decisión 1).
+      await this.resendVerificationFor(existing);
+      return {
+        credentialId: existing.id,
+        userId: existing.userId,
+        email: existing.email,
+        roles: existing.roles,
+        status: existing.status,
+      };
+    }
 
     const userId = randomUUID();
     const passwordHash = await this.passwordHasher.hash(input.password);
@@ -45,22 +65,7 @@ export class RegisterUseCase {
       },
     });
 
-    const token = randomBytes(32).toString('base64url');
-    const tokenHash = createHash('sha256').update(token).digest('hex');
-    await this.emailVerificationTokenRepository.create({
-      credentialId: credential.id,
-      tokenHash,
-      expiresAt: new Date(Date.now() + this.verificationTokenTtlMs),
-    });
-
-    const verifyUrl = `${this.verificationUrlBase}?token=${token}`;
-    try {
-      await this.emailSender.sendEmailVerification(credential.email, verifyUrl);
-    } catch {
-      // Un fallo del proveedor de correo no debe revertir una cuenta ya
-      // creada: no hay nada que compensar, y el usuario puede reintentar
-      // el flujo de recuperación más adelante (ver design.md).
-    }
+    await this.issueVerificationToken(credential.id, credential.email);
 
     return {
       credentialId: credential.id,
@@ -69,5 +74,39 @@ export class RegisterUseCase {
       roles: credential.roles,
       status: credential.status,
     };
+  }
+
+  private async resendVerificationFor(
+    credential: CredentialEntity,
+  ): Promise<void> {
+    await this.emailVerificationTokenRepository.invalidateAllForCredential(
+      credential.id,
+    );
+    // Marca la credencial como "con actividad reciente" para que el job de
+    // limpieza (ver design.md - Decisión 4) no la borre.
+    await this.credentialRepository.update(credential);
+    await this.issueVerificationToken(credential.id, credential.email);
+  }
+
+  private async issueVerificationToken(
+    credentialId: string,
+    email: string,
+  ): Promise<void> {
+    const token = randomBytes(32).toString('base64url');
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    await this.emailVerificationTokenRepository.create({
+      credentialId,
+      tokenHash,
+      expiresAt: new Date(Date.now() + this.verificationTokenTtlMs),
+    });
+
+    const verifyUrl = `${this.verificationUrlBase}?token=${token}`;
+    try {
+      await this.emailSender.sendEmailVerification(email, verifyUrl);
+    } catch {
+      // Un fallo del proveedor de correo no debe revertir una cuenta ya
+      // creada: no hay nada que compensar, y el usuario puede reintentar
+      // el flujo de recuperación más adelante (ver design.md).
+    }
   }
 }

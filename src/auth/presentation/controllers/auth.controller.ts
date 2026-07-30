@@ -10,6 +10,7 @@ import { ValidateTokenDto } from '../dtos/validate-token.dto';
 import { ForgotPasswordDto } from '../dtos/forgot-password.dto';
 import { ResetPasswordDto } from '../dtos/reset-password.dto';
 import { ConfirmEmailDto } from '../dtos/confirm-email.dto';
+import { ResendVerificationDto } from '../dtos/resend-verification.dto';
 import { LoginUseCase } from 'src/auth/application/use-cases/login.use-case';
 import { RefreshUseCase } from 'src/auth/application/use-cases/refresh.use-case';
 import { LogoutUseCase } from 'src/auth/application/use-cases/logout.use-case';
@@ -17,6 +18,7 @@ import { ValidateTokenUseCase } from 'src/auth/application/use-cases/validate-to
 import { ForgotPasswordUseCase } from 'src/auth/application/use-cases/forgot-password.use-case';
 import { ResetPasswordUseCase } from 'src/auth/application/use-cases/reset-password.use-case';
 import { ConfirmEmailUseCase } from 'src/auth/application/use-cases/confirm-email.use-case';
+import { ResendVerificationUseCase } from 'src/auth/application/use-cases/resend-verification.use-case';
 import { GetSessionUseCase } from 'src/auth/application/use-cases/get-session.use-case';
 import { MeDto } from '../dtos/me.dto';
 
@@ -32,6 +34,7 @@ export class AuthController {
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly confirmEmailUseCase: ConfirmEmailUseCase,
+    private readonly resendVerificationUseCase: ResendVerificationUseCase,
     private readonly getSessionUseCase: GetSessionUseCase,
   ) {}
 
@@ -81,6 +84,12 @@ export class AuthController {
   @GrpcMethod('AuthService', 'ConfirmEmail')
   async confirmEmail(data: ConfirmEmailDto) {
     await this.confirmEmailUseCase.execute(data);
+    return { success: true };
+  }
+
+  @GrpcMethod('AuthService', 'ResendVerification')
+  async resendVerification(data: ResendVerificationDto) {
+    await this.resendVerificationUseCase.execute(data);
     return { success: true };
   }
 }

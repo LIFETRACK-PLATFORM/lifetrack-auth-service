@@ -14,4 +14,5 @@ export interface EmailVerificationTokenRepositoryPort {
     tokenHash: string,
   ): Promise<EmailVerificationTokenEntity | null>;
   markAsUsed(id: string): Promise<void>;
+  invalidateAllForCredential(credentialId: string): Promise<void>;
 }

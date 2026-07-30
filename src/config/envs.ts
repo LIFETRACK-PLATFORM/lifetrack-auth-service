@@ -16,6 +16,7 @@ interface EnvVars {
   EMAIL_VERIFICATION_TOKEN_TTL: string;
   EMAIL_VERIFICATION_URL_BASE: string;
   RESEND_API_KEY: string;
+  STALE_REGISTRATION_TTL: string;
 }
 
 const envsSchema = joi
@@ -34,6 +35,7 @@ const envsSchema = joi
     EMAIL_VERIFICATION_TOKEN_TTL: joi.string().required(),
     EMAIL_VERIFICATION_URL_BASE: joi.string().required(),
     RESEND_API_KEY: joi.string().required(),
+    STALE_REGISTRATION_TTL: joi.string().default('30d'),
   })
   .unknown(true);
 
@@ -63,4 +65,5 @@ export const envs = {
   emailVerificationTokenTtl: envVars.EMAIL_VERIFICATION_TOKEN_TTL,
   emailVerificationUrlBase: envVars.EMAIL_VERIFICATION_URL_BASE,
   resendApiKey: envVars.RESEND_API_KEY,
+  staleRegistrationTtl: envVars.STALE_REGISTRATION_TTL,
 };

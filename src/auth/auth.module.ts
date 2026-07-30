@@ -8,7 +8,10 @@ import { ValidateTokenUseCase } from './application/use-cases/validate-token.use
 import { ForgotPasswordUseCase } from './application/use-cases/forgot-password.use-case';
 import { ResetPasswordUseCase } from './application/use-cases/reset-password.use-case';
 import { ConfirmEmailUseCase } from './application/use-cases/confirm-email.use-case';
+import { ResendVerificationUseCase } from './application/use-cases/resend-verification.use-case';
+import { CleanupExpiredRegistrationsUseCase } from './application/use-cases/cleanup-expired-registrations.use-case';
 import { GetSessionUseCase } from './application/use-cases/get-session.use-case';
+import { CleanupExpiredRegistrationsScheduler } from './infrastructure/adapters/scheduling/cleanup-expired-registrations.scheduler';
 import {
   CREDENTIAL_REPOSITORY,
   EVENT_PUBLISHER,
@@ -250,6 +253,36 @@ import type { EmailVerificationTokenRepositoryPort } from './domain/ports/email-
         ),
       inject: [EMAIL_VERIFICATION_TOKEN_REPOSITORY, CREDENTIAL_REPOSITORY],
     },
+    {
+      provide: ResendVerificationUseCase,
+      useFactory: (
+        credentialRepository: CredentialRepositoryPort,
+        emailVerificationTokenRepository: EmailVerificationTokenRepositoryPort,
+        emailSender: EmailSenderPort,
+      ) =>
+        new ResendVerificationUseCase(
+          credentialRepository,
+          emailVerificationTokenRepository,
+          emailSender,
+          parseDurationToMs(envs.emailVerificationTokenTtl),
+          envs.emailVerificationUrlBase,
+        ),
+      inject: [
+        CREDENTIAL_REPOSITORY,
+        EMAIL_VERIFICATION_TOKEN_REPOSITORY,
+        EMAIL_SENDER,
+      ],
+    },
+    {
+      provide: CleanupExpiredRegistrationsUseCase,
+      useFactory: (credentialRepository: CredentialRepositoryPort) =>
+        new CleanupExpiredRegistrationsUseCase(
+          credentialRepository,
+          parseDurationToMs(envs.staleRegistrationTtl),
+        ),
+      inject: [CREDENTIAL_REPOSITORY],
+    },
+    CleanupExpiredRegistrationsScheduler,
   ],
 })
 export class AuthModule {}

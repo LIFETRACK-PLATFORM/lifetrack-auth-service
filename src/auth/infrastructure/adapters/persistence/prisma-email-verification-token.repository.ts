@@ -8,9 +8,7 @@ import type {
 import { EmailVerificationTokenMapper } from './email-verification-token.mapper';
 
 @Injectable()
-export class PrismaEmailVerificationTokenRepository
-  implements EmailVerificationTokenRepositoryPort
-{
+export class PrismaEmailVerificationTokenRepository implements EmailVerificationTokenRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(
@@ -38,6 +36,13 @@ export class PrismaEmailVerificationTokenRepository
   async markAsUsed(id: string): Promise<void> {
     await this.prisma.emailVerificationToken.update({
       where: { id },
+      data: { usedAt: new Date() },
+    });
+  }
+
+  async invalidateAllForCredential(credentialId: string): Promise<void> {
+    await this.prisma.emailVerificationToken.updateMany({
+      where: { credentialId, usedAt: null },
       data: { usedAt: new Date() },
     });
   }
