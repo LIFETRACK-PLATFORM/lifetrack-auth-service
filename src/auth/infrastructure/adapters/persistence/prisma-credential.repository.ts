@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CredentialEntity } from '../../../domain/entities/credential.entity';
+import {
+  CredentialEntity,
+  CredentialStatus,
+} from '../../../domain/entities/credential.entity';
 import type {
   CreateCredentialInput,
   CredentialRepositoryPort,
@@ -39,5 +42,27 @@ export class PrismaCredentialRepository implements CredentialRepositoryPort {
       where: { id: credential.id },
       data: CredentialMapper.toPersistence(credential),
     });
+  }
+
+  async deleteStalePendingVerification(olderThan: Date): Promise<number> {
+    const stale = await this.prisma.credential.findMany({
+      where: {
+        status: CredentialStatus.PENDING_VERIFICATION,
+        updatedAt: { lt: olderThan },
+      },
+      select: { id: true },
+    });
+    if (!stale.length) return 0;
+
+    const staleIds = stale.map((credential) => credential.id);
+    await this.prisma.$transaction([
+      this.prisma.emailVerificationToken.deleteMany({
+        where: { credentialId: { in: staleIds } },
+      }),
+      this.prisma.credential.deleteMany({
+        where: { id: { in: staleIds } },
+      }),
+    ]);
+    return staleIds.length;
   }
 }

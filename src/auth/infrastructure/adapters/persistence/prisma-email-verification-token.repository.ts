@@ -41,4 +41,11 @@ export class PrismaEmailVerificationTokenRepository
       data: { usedAt: new Date() },
     });
   }
+
+  async invalidateAllForCredential(credentialId: string): Promise<void> {
+    await this.prisma.emailVerificationToken.updateMany({
+      where: { credentialId, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+  }
 }

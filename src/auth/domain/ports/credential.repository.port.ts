@@ -17,4 +17,5 @@ export interface CredentialRepositoryPort {
   findById(id: string): Promise<CredentialEntity | null>;
   create(data: CreateCredentialInput): Promise<CredentialEntity>;
   update(credential: CredentialEntity): Promise<void>;
+  deleteStalePendingVerification(olderThan: Date): Promise<number>;
 }

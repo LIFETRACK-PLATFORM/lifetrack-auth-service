@@ -12,6 +12,7 @@ service AuthService {
   rpc ForgotPassword (ForgotPasswordRequest) returns (ForgotPasswordResponse);
   rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse);
   rpc ConfirmEmail (ConfirmEmailRequest) returns (ConfirmEmailResponse);
+  rpc ResendVerification (ResendVerificationRequest) returns (ResendVerificationResponse);
 }
 
 message RegisterRequest {
@@ -98,5 +99,13 @@ message ConfirmEmailRequest {
 }
 
 message ConfirmEmailResponse {
+  bool success = 1;
+}
+
+message ResendVerificationRequest {
+  string email = 1;
+}
+
+message ResendVerificationResponse {
   bool success = 1;
 }

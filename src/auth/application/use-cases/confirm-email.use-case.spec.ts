@@ -49,6 +49,7 @@ function createEmailVerificationTokenRepositoryMock() {
     create: jest.fn(),
     findByTokenHash: jest.fn(),
     markAsUsed: jest.fn(),
+    invalidateAllForCredential: jest.fn(),
   };
 }
 
@@ -58,6 +59,7 @@ function createCredentialRepositoryMock() {
     findById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    deleteStalePendingVerification: jest.fn(),
   };
 }
 
