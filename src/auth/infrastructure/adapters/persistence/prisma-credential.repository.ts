@@ -16,6 +16,11 @@ export class PrismaCredentialRepository implements CredentialRepositoryPort {
     return raw ? CredentialMapper.toDomain(raw) : null;
   }
 
+  async findById(id: string): Promise<CredentialEntity | null> {
+    const raw = await this.prisma.credential.findUnique({ where: { id } });
+    return raw ? CredentialMapper.toDomain(raw) : null;
+  }
+
   async create(data: CreateCredentialInput): Promise<CredentialEntity> {
     const raw = await this.prisma.credential.create({
       data: {
@@ -23,8 +28,16 @@ export class PrismaCredentialRepository implements CredentialRepositoryPort {
         email: data.email,
         passwordHash: data.passwordHash,
         roles: data.roles,
+        status: data.status,
       },
     });
     return CredentialMapper.toDomain(raw);
+  }
+
+  async update(credential: CredentialEntity): Promise<void> {
+    await this.prisma.credential.update({
+      where: { id: credential.id },
+      data: CredentialMapper.toPersistence(credential),
+    });
   }
 }

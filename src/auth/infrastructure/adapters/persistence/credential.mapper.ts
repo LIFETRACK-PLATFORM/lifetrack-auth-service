@@ -15,6 +15,8 @@ export class CredentialMapper {
         roles: raw.roles as AuthRole[],
         status: raw.status as CredentialStatus,
         emailVerifiedAt: raw.emailVerifiedAt,
+        failedLoginAttempts: raw.failedLoginAttempts,
+        lockedUntil: raw.lockedUntil,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,
       },
@@ -29,6 +31,9 @@ export class CredentialMapper {
       passwordHash: domain.passwordHash,
       roles: domain.roles,
       status: domain.status,
+      emailVerifiedAt: domain.emailVerifiedAt,
+      failedLoginAttempts: domain.failedLoginAttempts,
+      lockedUntil: domain.lockedUntil,
     };
   }
 }

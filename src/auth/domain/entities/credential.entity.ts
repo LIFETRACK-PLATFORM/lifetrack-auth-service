@@ -20,6 +20,8 @@ export type CredentialProps = {
   roles: AuthRole[];
   status: CredentialStatus;
   emailVerifiedAt?: Date | null;
+  failedLoginAttempts: number;
+  lockedUntil?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -47,12 +49,57 @@ export class CredentialEntity extends AggregateRoot<CredentialProps> {
   get status(): CredentialStatus {
     return this.props.status;
   }
+  get failedLoginAttempts(): number {
+    return this.props.failedLoginAttempts;
+  }
+  get lockedUntil(): Date | null | undefined {
+    return this.props.lockedUntil;
+  }
+  get emailVerifiedAt(): Date | null | undefined {
+    return this.props.emailVerifiedAt;
+  }
 
   isActive(): boolean {
     return this.props.status === CredentialStatus.ACTIVE;
   }
 
+  isPendingVerification(): boolean {
+    return this.props.status === CredentialStatus.PENDING_VERIFICATION;
+  }
+
+  markEmailVerified(): void {
+    if (this.props.status !== CredentialStatus.PENDING_VERIFICATION) {
+      throw new Error(
+        'Solo una cuenta pendiente de verificación puede activarse por este medio',
+      );
+    }
+    this.props.status = CredentialStatus.ACTIVE;
+    this.props.emailVerifiedAt = new Date();
+  }
+
   hasRole(role: AuthRole): boolean {
     return this.props.roles.includes(role);
+  }
+
+  isLocked(): boolean {
+    return (
+      !!this.props.lockedUntil && this.props.lockedUntil.getTime() > Date.now()
+    );
+  }
+
+  registerFailedAttempt(maxAttempts: number, lockoutDurationMs: number): void {
+    this.props.failedLoginAttempts += 1;
+    if (this.props.failedLoginAttempts >= maxAttempts) {
+      this.props.lockedUntil = new Date(Date.now() + lockoutDurationMs);
+    }
+  }
+
+  resetFailedAttempts(): void {
+    this.props.failedLoginAttempts = 0;
+    this.props.lockedUntil = null;
+  }
+
+  setPasswordHash(passwordHash: string): void {
+    this.props.passwordHash = passwordHash;
   }
 }

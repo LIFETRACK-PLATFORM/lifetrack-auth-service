@@ -27,13 +27,57 @@ enum CredentialStatus {
 }
 
 model Credential {
-  id              String           @id @default(uuid())
-  userId          String           @unique
-  email           String           @unique
-  passwordHash    String
-  roles           AuthRole[]       @default([USER])
-  status          CredentialStatus @default(ACTIVE)
-  emailVerifiedAt DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id                      String                   @id @default(uuid())
+  userId                  String                   @unique
+  email                   String                   @unique
+  passwordHash            String
+  roles                   AuthRole[]               @default([USER])
+  status                  CredentialStatus         @default(ACTIVE)
+  emailVerifiedAt         DateTime?
+  failedLoginAttempts     Int                      @default(0)
+  lockedUntil             DateTime?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  refreshTokens           RefreshToken[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+}
+
+model RefreshToken {
+  id           String     @id @default(uuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id])
+  tokenHash    String     @unique
+  familyId     String
+  replacedById String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime   @default(now())
+
+  @@index([credentialId])
+  @@index([familyId])
+}
+
+model PasswordResetToken {
+  id           String     @id @default(uuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id])
+  tokenHash    String     @unique
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime   @default(now())
+
+  @@index([credentialId])
+}
+
+model EmailVerificationToken {
+  id           String     @id @default(uuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id])
+  tokenHash    String     @unique
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime   @default(now())
+
+  @@index([credentialId])
 }
