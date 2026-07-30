@@ -1,4 +1,8 @@
 import { AggregateRoot } from '../../../shared/domain/building-blocks/AggregateRoot';
+import {
+  AccountAlreadyVerifiedError,
+  InvalidCredentialDataError,
+} from '../exceptions/auth.errors';
 
 export enum AuthRole {
   ADMIN = 'ADMIN',
@@ -28,9 +32,14 @@ export type CredentialProps = {
 
 export class CredentialEntity extends AggregateRoot<CredentialProps> {
   constructor(props: CredentialProps, id?: string) {
-    if (!props.email) throw new Error('Email is required');
-    if (!props.passwordHash) throw new Error('Password hash is required');
-    if (!props.roles?.length) throw new Error('At least one role is required');
+    if (!props.email)
+      throw new InvalidCredentialDataError('El email es obligatorio');
+    if (!props.passwordHash)
+      throw new InvalidCredentialDataError(
+        'El hash de la contraseña es obligatorio',
+      );
+    if (!props.roles?.length)
+      throw new InvalidCredentialDataError('Se requiere al menos un rol');
     super(props, id);
   }
 
@@ -69,9 +78,7 @@ export class CredentialEntity extends AggregateRoot<CredentialProps> {
 
   markEmailVerified(): void {
     if (this.props.status !== CredentialStatus.PENDING_VERIFICATION) {
-      throw new Error(
-        'Solo una cuenta pendiente de verificación puede activarse por este medio',
-      );
+      throw new AccountAlreadyVerifiedError();
     }
     this.props.status = CredentialStatus.ACTIVE;
     this.props.emailVerifiedAt = new Date();
