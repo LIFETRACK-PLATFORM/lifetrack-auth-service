@@ -24,19 +24,15 @@ const envsSchema = joi
     NATS_SERVERS: joi.array().items(joi.string()).required(),
     DATABASE_URL: joi.string().required(),
     JWT_SECRET: joi.string().min(32).required(),
-    JWT_ACCESS_EXPIRES_IN: joi.string().default('15m'),
-    JWT_REFRESH_EXPIRES_IN: joi.string().default('7d'),
-    BCRYPT_SALT_ROUNDS: joi.number().default(12),
-    LOGIN_MAX_ATTEMPTS: joi.number().default(5),
-    LOGIN_LOCKOUT_DURATION: joi.string().default('15m'),
-    PASSWORD_RESET_TOKEN_TTL: joi.string().default('15m'),
-    PASSWORD_RESET_URL_BASE: joi
-      .string()
-      .default('http://localhost:3002/reset-password'),
-    EMAIL_VERIFICATION_TOKEN_TTL: joi.string().default('24h'),
-    EMAIL_VERIFICATION_URL_BASE: joi
-      .string()
-      .default('http://localhost:3002/confirm-email'),
+    JWT_ACCESS_EXPIRES_IN: joi.string().required(),
+    JWT_REFRESH_EXPIRES_IN: joi.string().required(),
+    BCRYPT_SALT_ROUNDS: joi.number().required(),
+    LOGIN_MAX_ATTEMPTS: joi.number().required(),
+    LOGIN_LOCKOUT_DURATION: joi.string().required(),
+    PASSWORD_RESET_TOKEN_TTL: joi.string().required(),
+    PASSWORD_RESET_URL_BASE: joi.string().required(),
+    EMAIL_VERIFICATION_TOKEN_TTL: joi.string().required(),
+    EMAIL_VERIFICATION_URL_BASE: joi.string().required(),
     RESEND_API_KEY: joi.string().required(),
   })
   .unknown(true);
