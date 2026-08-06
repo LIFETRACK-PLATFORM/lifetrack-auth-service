@@ -25,9 +25,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/proto ./src/proto
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/generated ./generated
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 USER nestjs
-EXPOSE 3000
-HEALTHCHECK --interval=30s CMD wget -qO- http://localhost:3000/health || exit 1
 CMD ["node", "dist/src/main"]
