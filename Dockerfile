@@ -25,7 +25,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/proto ./src/proto
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/generated ./generated
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 USER nestjs
 CMD ["node", "dist/src/main"]
