@@ -10,7 +10,8 @@ const CONSTRAINT_MESSAGES: Record<string, ConstraintTranslator> = {
   isEnum: (property) => `${property} contiene un valor no permitido`,
   isInt: (property) => `${property} debe ser un número entero`,
   isNumber: (property) => `${property} debe ser un número`,
-  isDateString: (property) => `${property} debe ser una fecha válida (ISO 8601)`,
+  isDateString: (property) =>
+    `${property} debe ser una fecha válida (ISO 8601)`,
   isStrongPassword: () =>
     'La contraseña debe tener al menos 8 caracteres, e incluir mayúsculas, minúsculas, números y símbolos',
   min: (property, original) => {
@@ -43,7 +44,9 @@ function flattenValidationErrors(
   const messages: string[] = [];
 
   for (const error of errors) {
-    const path = parentPath ? `${parentPath}.${error.property}` : error.property;
+    const path = parentPath
+      ? `${parentPath}.${error.property}`
+      : error.property;
 
     if (error.constraints) {
       for (const [type, original] of Object.entries(error.constraints)) {

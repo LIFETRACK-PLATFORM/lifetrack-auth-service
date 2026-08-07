@@ -11,9 +11,7 @@ import { OAuthLinkTokenMapper } from './oauth-link-token.mapper';
 export class PrismaOAuthLinkTokenRepository implements OAuthLinkTokenRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    data: CreateOAuthLinkTokenInput,
-  ): Promise<OAuthLinkTokenEntity> {
+  async create(data: CreateOAuthLinkTokenInput): Promise<OAuthLinkTokenEntity> {
     const raw = await this.prisma.oAuthLinkToken.create({
       data: {
         credentialId: data.credentialId,

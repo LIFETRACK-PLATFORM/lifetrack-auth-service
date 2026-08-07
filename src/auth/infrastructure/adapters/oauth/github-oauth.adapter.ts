@@ -69,7 +69,10 @@ export class GitHubOAuthAdapter implements OAuthProviderPort {
     }
 
     const profile = (await profileResponse.json()) as GitHubUser;
-    const emailInfo = await this.resolveEmail(tokens.access_token, profile.email);
+    const emailInfo = await this.resolveEmail(
+      tokens.access_token,
+      profile.email,
+    );
 
     return {
       provider: AuthProvider.GITHUB,
