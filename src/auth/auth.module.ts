@@ -11,6 +11,8 @@ import { ConfirmEmailUseCase } from './application/use-cases/confirm-email.use-c
 import { ResendVerificationUseCase } from './application/use-cases/resend-verification.use-case';
 import { CleanupExpiredRegistrationsUseCase } from './application/use-cases/cleanup-expired-registrations.use-case';
 import { GetSessionUseCase } from './application/use-cases/get-session.use-case';
+import { LoginWithOAuthUseCase } from './application/use-cases/login-with-oauth.use-case';
+import { LinkOAuthAccountUseCase } from './application/use-cases/link-oauth-account.use-case';
 import { CleanupExpiredRegistrationsScheduler } from './infrastructure/adapters/scheduling/cleanup-expired-registrations.scheduler';
 import {
   CREDENTIAL_REPOSITORY,
@@ -22,11 +24,17 @@ import {
   EMAIL_SENDER,
   PASSWORD_RESET_TOKEN_REPOSITORY,
   EMAIL_VERIFICATION_TOKEN_REPOSITORY,
+  GOOGLE_OAUTH_PROVIDER,
+  GITHUB_OAUTH_PROVIDER,
+  OAUTH_LINK_TOKEN_REPOSITORY,
 } from './domain/ports/tokens';
 import { PrismaCredentialRepository } from './infrastructure/adapters/persistence/prisma-credential.repository';
 import { PrismaRefreshTokenRepository } from './infrastructure/adapters/persistence/prisma-refresh-token.repository';
 import { PrismaPasswordResetTokenRepository } from './infrastructure/adapters/persistence/prisma-password-reset-token.repository';
 import { PrismaEmailVerificationTokenRepository } from './infrastructure/adapters/persistence/prisma-email-verification-token.repository';
+import { PrismaOAuthLinkTokenRepository } from './infrastructure/adapters/persistence/prisma-oauth-link-token.repository';
+import { GoogleOAuthAdapter } from './infrastructure/adapters/oauth/google-oauth.adapter';
+import { GitHubOAuthAdapter } from './infrastructure/adapters/oauth/github-oauth.adapter';
 import { BcryptPasswordHasher } from './infrastructure/adapters/security/bcrypt-password-hasher';
 import { RefreshTokenCryptoService } from './infrastructure/adapters/security/refresh-token-crypto.service';
 import { ResendEmailSender } from './infrastructure/adapters/email/resend-email-sender';
@@ -45,6 +53,8 @@ import type { RefreshTokenServicePort } from './domain/ports/refresh-token.servi
 import type { EmailSenderPort } from './domain/ports/email-sender.port';
 import type { PasswordResetTokenRepositoryPort } from './domain/ports/password-reset-token.repository.port';
 import type { EmailVerificationTokenRepositoryPort } from './domain/ports/email-verification-token.repository.port';
+import type { OAuthLinkTokenRepositoryPort } from './domain/ports/oauth-link-token.repository.port';
+import type { OAuthProviderPort } from './domain/ports/oauth-provider.port';
 
 @Module({
   imports: [
@@ -94,6 +104,18 @@ import type { EmailVerificationTokenRepositoryPort } from './domain/ports/email-
     {
       provide: EMAIL_VERIFICATION_TOKEN_REPOSITORY,
       useClass: PrismaEmailVerificationTokenRepository,
+    },
+    {
+      provide: OAUTH_LINK_TOKEN_REPOSITORY,
+      useClass: PrismaOAuthLinkTokenRepository,
+    },
+    {
+      provide: GOOGLE_OAUTH_PROVIDER,
+      useClass: GoogleOAuthAdapter,
+    },
+    {
+      provide: GITHUB_OAUTH_PROVIDER,
+      useClass: GitHubOAuthAdapter,
     },
     {
       provide: RegisterUseCase,
@@ -283,6 +305,67 @@ import type { EmailVerificationTokenRepositoryPort } from './domain/ports/email-
       inject: [CREDENTIAL_REPOSITORY],
     },
     CleanupExpiredRegistrationsScheduler,
+    {
+      provide: LoginWithOAuthUseCase,
+      useFactory: (
+        credentialRepository: CredentialRepositoryPort,
+        oauthLinkTokenRepository: OAuthLinkTokenRepositoryPort,
+        googleOAuthProvider: OAuthProviderPort,
+        githubOAuthProvider: OAuthProviderPort,
+        tokenService: TokenServicePort,
+        refreshTokenService: RefreshTokenServicePort,
+        refreshTokenRepository: RefreshTokenRepositoryPort,
+        eventPublisher: EventPublisherPort,
+      ) =>
+        new LoginWithOAuthUseCase(
+          credentialRepository,
+          oauthLinkTokenRepository,
+          googleOAuthProvider,
+          githubOAuthProvider,
+          tokenService,
+          refreshTokenService,
+          refreshTokenRepository,
+          eventPublisher,
+          parseDurationToMs(envs.oauthLinkTokenTtl),
+        ),
+      inject: [
+        CREDENTIAL_REPOSITORY,
+        OAUTH_LINK_TOKEN_REPOSITORY,
+        GOOGLE_OAUTH_PROVIDER,
+        GITHUB_OAUTH_PROVIDER,
+        TOKEN_SERVICE,
+        REFRESH_TOKEN_SERVICE,
+        REFRESH_TOKEN_REPOSITORY,
+        EVENT_PUBLISHER,
+      ],
+    },
+    {
+      provide: LinkOAuthAccountUseCase,
+      useFactory: (
+        oauthLinkTokenRepository: OAuthLinkTokenRepositoryPort,
+        credentialRepository: CredentialRepositoryPort,
+        hasher: PasswordHasherPort,
+        tokenService: TokenServicePort,
+        refreshTokenService: RefreshTokenServicePort,
+        refreshTokenRepository: RefreshTokenRepositoryPort,
+      ) =>
+        new LinkOAuthAccountUseCase(
+          oauthLinkTokenRepository,
+          credentialRepository,
+          hasher,
+          tokenService,
+          refreshTokenService,
+          refreshTokenRepository,
+        ),
+      inject: [
+        OAUTH_LINK_TOKEN_REPOSITORY,
+        CREDENTIAL_REPOSITORY,
+        PASSWORD_HASHER,
+        TOKEN_SERVICE,
+        REFRESH_TOKEN_SERVICE,
+        REFRESH_TOKEN_REPOSITORY,
+      ],
+    },
   ],
 })
 export class AuthModule {}

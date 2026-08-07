@@ -1,5 +1,6 @@
 import {
   AuthRole,
+  AuthProvider,
   CredentialEntity,
   CredentialStatus,
 } from './credential.entity';
@@ -8,6 +9,8 @@ const baseProps = {
   userId: 'user-1',
   email: 'alice@lifetrack.dev',
   passwordHash: 'hashed-password',
+  provider: AuthProvider.LOCAL,
+  providerId: null,
   roles: [AuthRole.USER],
   status: CredentialStatus.ACTIVE,
   failedLoginAttempts: 0,
@@ -30,10 +33,34 @@ describe('CredentialEntity', () => {
     );
   });
 
-  it('lanza error si falta el passwordHash', () => {
+  it('lanza error si falta el passwordHash en credencial LOCAL', () => {
     expect(
-      () => new CredentialEntity({ ...baseProps, passwordHash: '' }),
-    ).toThrow('El hash de la contraseña es obligatorio');
+      () =>
+        new CredentialEntity({
+          ...baseProps,
+          passwordHash: null,
+          provider: AuthProvider.LOCAL,
+        }),
+    ).toThrow('Las credenciales locales requieren hash de contraseña');
+  });
+
+  it('permite credencial OAuth sin passwordHash', () => {
+    const credential = new CredentialEntity({
+      ...baseProps,
+      passwordHash: null,
+      provider: AuthProvider.GOOGLE,
+      providerId: 'google-sub-1',
+    });
+    expect(credential.hasPassword()).toBe(false);
+    expect(credential.provider).toBe(AuthProvider.GOOGLE);
+  });
+
+  it('linkOAuthProvider() vincula un proveedor OAuth a una cuenta local', () => {
+    const credential = new CredentialEntity(baseProps);
+    credential.linkOAuthProvider(AuthProvider.GOOGLE, 'google-sub-1');
+    expect(credential.provider).toBe(AuthProvider.GOOGLE);
+    expect(credential.providerId).toBe('google-sub-1');
+    expect(credential.hasPassword()).toBe(true);
   });
 
   it('lanza error si no tiene al menos un rol', () => {

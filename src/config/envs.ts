@@ -18,6 +18,12 @@ interface EnvVars {
   RESEND_API_KEY: string;
   RESEND_FROM_EMAIL: string;
   STALE_REGISTRATION_TTL: string;
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
+  GITHUB_CLIENT_ID: string;
+  GITHUB_CLIENT_SECRET: string;
+  OAUTH_REDIRECT_BASE_URL: string;
+  OAUTH_LINK_TOKEN_TTL: string;
 }
 
 const envsSchema = joi
@@ -40,6 +46,12 @@ const envsSchema = joi
       .string()
       .default('LifeTrack <onboarding@resend.dev>'),
     STALE_REGISTRATION_TTL: joi.string().default('30d'),
+    GOOGLE_CLIENT_ID: joi.string().required(),
+    GOOGLE_CLIENT_SECRET: joi.string().required(),
+    GITHUB_CLIENT_ID: joi.string().required(),
+    GITHUB_CLIENT_SECRET: joi.string().required(),
+    OAUTH_REDIRECT_BASE_URL: joi.string().required(),
+    OAUTH_LINK_TOKEN_TTL: joi.string().default('15m'),
   })
   .unknown(true);
 
@@ -71,4 +83,10 @@ export const envs = {
   resendApiKey: envVars.RESEND_API_KEY,
   resendFromEmail: envVars.RESEND_FROM_EMAIL,
   staleRegistrationTtl: envVars.STALE_REGISTRATION_TTL,
+  googleClientId: envVars.GOOGLE_CLIENT_ID,
+  googleClientSecret: envVars.GOOGLE_CLIENT_SECRET,
+  githubClientId: envVars.GITHUB_CLIENT_ID,
+  githubClientSecret: envVars.GITHUB_CLIENT_SECRET,
+  oauthRedirectBaseUrl: envVars.OAUTH_REDIRECT_BASE_URL,
+  oauthLinkTokenTtl: envVars.OAUTH_LINK_TOKEN_TTL,
 };

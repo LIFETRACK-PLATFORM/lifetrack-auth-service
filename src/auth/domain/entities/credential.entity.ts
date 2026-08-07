@@ -17,10 +17,31 @@ export enum CredentialStatus {
   PENDING_VERIFICATION = 'PENDING_VERIFICATION',
 }
 
+export enum AuthProvider {
+  LOCAL = 'LOCAL',
+  GOOGLE = 'GOOGLE',
+  GITHUB = 'GITHUB',
+}
+
+export function parseAuthProvider(value: string): AuthProvider {
+  const normalized = value.trim().toUpperCase();
+  if (normalized === 'GOOGLE') {
+    return AuthProvider.GOOGLE;
+  }
+  if (normalized === 'GITHUB') {
+    return AuthProvider.GITHUB;
+  }
+  throw new InvalidCredentialDataError(
+    `Proveedor OAuth no soportado: ${value}`,
+  );
+}
+
 export type CredentialProps = {
   userId: string;
   email: string;
-  passwordHash: string;
+  passwordHash: string | null;
+  provider: AuthProvider;
+  providerId?: string | null;
   roles: AuthRole[];
   status: CredentialStatus;
   emailVerifiedAt?: Date | null;
@@ -34,10 +55,16 @@ export class CredentialEntity extends AggregateRoot<CredentialProps> {
   constructor(props: CredentialProps, id?: string) {
     if (!props.email)
       throw new InvalidCredentialDataError('El email es obligatorio');
-    if (!props.passwordHash)
+    if (props.provider === AuthProvider.LOCAL && !props.passwordHash) {
       throw new InvalidCredentialDataError(
-        'El hash de la contraseña es obligatorio',
+        'Las credenciales locales requieren hash de contraseña',
       );
+    }
+    if (props.provider !== AuthProvider.LOCAL && !props.providerId) {
+      throw new InvalidCredentialDataError(
+        'Las credenciales OAuth requieren providerId',
+      );
+    }
     if (!props.roles?.length)
       throw new InvalidCredentialDataError('Se requiere al menos un rol');
     super(props, id);
@@ -49,8 +76,14 @@ export class CredentialEntity extends AggregateRoot<CredentialProps> {
   get email(): string {
     return this.props.email;
   }
-  get passwordHash(): string {
+  get passwordHash(): string | null {
     return this.props.passwordHash;
+  }
+  get provider(): AuthProvider {
+    return this.props.provider;
+  }
+  get providerId(): string | null | undefined {
+    return this.props.providerId;
   }
   get roles(): AuthRole[] {
     return this.props.roles;
@@ -74,6 +107,14 @@ export class CredentialEntity extends AggregateRoot<CredentialProps> {
 
   isPendingVerification(): boolean {
     return this.props.status === CredentialStatus.PENDING_VERIFICATION;
+  }
+
+  isLocalProvider(): boolean {
+    return this.props.provider === AuthProvider.LOCAL;
+  }
+
+  hasPassword(): boolean {
+    return this.props.passwordHash !== null;
   }
 
   markEmailVerified(): void {
@@ -108,5 +149,20 @@ export class CredentialEntity extends AggregateRoot<CredentialProps> {
 
   setPasswordHash(passwordHash: string): void {
     this.props.passwordHash = passwordHash;
+  }
+
+  linkOAuthProvider(provider: AuthProvider, providerId: string): void {
+    if (provider === AuthProvider.LOCAL) {
+      throw new InvalidCredentialDataError(
+        'No se puede vincular el proveedor LOCAL',
+      );
+    }
+    if (!this.hasPassword()) {
+      throw new InvalidCredentialDataError(
+        'Solo cuentas con contraseña local pueden vincularse',
+      );
+    }
+    this.props.provider = provider;
+    this.props.providerId = providerId;
   }
 }

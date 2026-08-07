@@ -3,6 +3,7 @@ import { ResetPasswordUseCase } from './reset-password.use-case';
 import { InvalidPasswordResetTokenError } from '../../domain/exceptions/auth.errors';
 import {
   AuthRole,
+  AuthProvider,
   CredentialEntity,
   CredentialStatus,
 } from '../../domain/entities/credential.entity';
@@ -17,6 +18,8 @@ function buildCredential() {
       userId: 'user-1',
       email: 'alice@lifetrack.dev',
       passwordHash: 'old-hash',
+      provider: AuthProvider.LOCAL,
+      providerId: null,
       roles: [AuthRole.USER],
       status: CredentialStatus.ACTIVE,
       failedLoginAttempts: 0,

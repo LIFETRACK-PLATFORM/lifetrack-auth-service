@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
+  AuthProvider,
   CredentialEntity,
   CredentialStatus,
 } from '../../../domain/entities/credential.entity';
@@ -19,6 +20,16 @@ export class PrismaCredentialRepository implements CredentialRepositoryPort {
     return raw ? CredentialMapper.toDomain(raw) : null;
   }
 
+  async findByProvider(
+    provider: AuthProvider,
+    providerId: string,
+  ): Promise<CredentialEntity | null> {
+    const raw = await this.prisma.credential.findFirst({
+      where: { provider, providerId },
+    });
+    return raw ? CredentialMapper.toDomain(raw) : null;
+  }
+
   async findById(id: string): Promise<CredentialEntity | null> {
     const raw = await this.prisma.credential.findUnique({ where: { id } });
     return raw ? CredentialMapper.toDomain(raw) : null;
@@ -30,8 +41,11 @@ export class PrismaCredentialRepository implements CredentialRepositoryPort {
         userId: data.userId,
         email: data.email,
         passwordHash: data.passwordHash,
+        provider: data.provider ?? AuthProvider.LOCAL,
+        providerId: data.providerId ?? null,
         roles: data.roles,
         status: data.status,
+        emailVerifiedAt: data.emailVerifiedAt ?? null,
       },
     });
     return CredentialMapper.toDomain(raw);
@@ -57,6 +71,9 @@ export class PrismaCredentialRepository implements CredentialRepositoryPort {
     const staleIds = stale.map((credential) => credential.id);
     await this.prisma.$transaction([
       this.prisma.emailVerificationToken.deleteMany({
+        where: { credentialId: { in: staleIds } },
+      }),
+      this.prisma.oAuthLinkToken.deleteMany({
         where: { credentialId: { in: staleIds } },
       }),
       this.prisma.credential.deleteMany({

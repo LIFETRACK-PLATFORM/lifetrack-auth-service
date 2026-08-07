@@ -1,6 +1,7 @@
 import { ResendVerificationUseCase } from './resend-verification.use-case';
 import {
   AuthRole,
+  AuthProvider,
   CredentialEntity,
   CredentialStatus,
 } from '../../domain/entities/credential.entity';
@@ -14,6 +15,8 @@ function buildCredential(status: CredentialStatus) {
       userId: 'user-1',
       email: 'alice@lifetrack.dev',
       passwordHash: 'hashed-password',
+      provider: AuthProvider.LOCAL,
+      providerId: null,
       roles: [AuthRole.USER],
       status,
       failedLoginAttempts: 0,
@@ -27,6 +30,7 @@ function buildCredential(status: CredentialStatus) {
 function createCredentialRepositoryMock() {
   return {
     findByEmail: jest.fn(),
+    findByProvider: jest.fn(),
     findById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
