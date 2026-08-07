@@ -40,6 +40,7 @@ export class GetSessionUseCase {
       email: credential.email,
       roles: credential.roles,
       status: credential.status,
+      provider: credential.provider,
     };
   }
 }

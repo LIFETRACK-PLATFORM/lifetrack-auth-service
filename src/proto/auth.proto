@@ -15,6 +15,7 @@ service AuthService {
   rpc ResendVerification (ResendVerificationRequest) returns (ResendVerificationResponse);
   rpc LoginWithOAuth (LoginWithOAuthRequest) returns (LoginWithOAuthResponse);
   rpc LinkOAuthAccount (LinkOAuthAccountRequest) returns (LoginResponse);
+  rpc SwitchOAuthProvider (SwitchOAuthProviderRequest) returns (SwitchOAuthProviderResponse);
 }
 
 message RegisterRequest {
@@ -77,6 +78,7 @@ message MeResponse {
   string email = 2;
   repeated string roles = 3;
   string status = 4;
+  string provider = 5;
 }
 
 message ForgotPasswordRequest {
@@ -134,4 +136,16 @@ message LinkOAuthAccountRequest {
   string provider = 1;
   string linkToken = 2;
   string password = 3;
+}
+
+message SwitchOAuthProviderRequest {
+  string refreshToken = 1;
+  string provider = 2;
+  string code = 3;
+  string codeVerifier = 4;
+}
+
+message SwitchOAuthProviderResponse {
+  string status = 1;
+  string provider = 2;
 }

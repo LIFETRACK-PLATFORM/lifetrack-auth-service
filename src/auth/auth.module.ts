@@ -13,6 +13,7 @@ import { CleanupExpiredRegistrationsUseCase } from './application/use-cases/clea
 import { GetSessionUseCase } from './application/use-cases/get-session.use-case';
 import { LoginWithOAuthUseCase } from './application/use-cases/login-with-oauth.use-case';
 import { LinkOAuthAccountUseCase } from './application/use-cases/link-oauth-account.use-case';
+import { SwitchOAuthProviderUseCase } from './application/use-cases/switch-oauth-provider.use-case';
 import { CleanupExpiredRegistrationsScheduler } from './infrastructure/adapters/scheduling/cleanup-expired-registrations.scheduler';
 import {
   CREDENTIAL_REPOSITORY,
@@ -364,6 +365,30 @@ import type { OAuthProviderPort } from './domain/ports/oauth-provider.port';
         TOKEN_SERVICE,
         REFRESH_TOKEN_SERVICE,
         REFRESH_TOKEN_REPOSITORY,
+      ],
+    },
+    {
+      provide: SwitchOAuthProviderUseCase,
+      useFactory: (
+        refreshTokenRepository: RefreshTokenRepositoryPort,
+        refreshTokenService: RefreshTokenServicePort,
+        credentialRepository: CredentialRepositoryPort,
+        googleOAuthProvider: OAuthProviderPort,
+        githubOAuthProvider: OAuthProviderPort,
+      ) =>
+        new SwitchOAuthProviderUseCase(
+          refreshTokenRepository,
+          refreshTokenService,
+          credentialRepository,
+          googleOAuthProvider,
+          githubOAuthProvider,
+        ),
+      inject: [
+        REFRESH_TOKEN_REPOSITORY,
+        REFRESH_TOKEN_SERVICE,
+        CREDENTIAL_REPOSITORY,
+        GOOGLE_OAUTH_PROVIDER,
+        GITHUB_OAUTH_PROVIDER,
       ],
     },
   ],

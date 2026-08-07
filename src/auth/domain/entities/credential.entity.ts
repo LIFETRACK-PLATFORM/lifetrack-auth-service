@@ -157,9 +157,9 @@ export class CredentialEntity extends AggregateRoot<CredentialProps> {
         'No se puede vincular el proveedor LOCAL',
       );
     }
-    if (!this.hasPassword()) {
+    if (!this.isActive()) {
       throw new InvalidCredentialDataError(
-        'Solo cuentas con contraseña local pueden vincularse',
+        'Solo cuentas activas pueden vincularse a un nuevo proveedor',
       );
     }
     this.props.provider = provider;

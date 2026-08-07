@@ -105,6 +105,7 @@ describe('GetSessionUseCase', () => {
       email: 'alice@lifetrack.dev',
       roles: [AuthRole.USER],
       status: CredentialStatus.ACTIVE,
+      provider: AuthProvider.LOCAL,
     });
     expect(refreshTokenService.generate).not.toHaveBeenCalled();
     expect(refreshTokenRepository.create).not.toHaveBeenCalled();
