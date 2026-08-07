@@ -9,6 +9,7 @@ import {
 import {
   InactiveAccountError,
   InvalidCredentialDataError,
+  OAuthEmailAlreadyRegisteredError,
 } from '../../domain/exceptions/auth.errors';
 import type { CredentialRepositoryPort } from '../../domain/ports/credential.repository.port';
 import type { OAuthLinkTokenRepositoryPort } from '../../domain/ports/oauth-link-token.repository.port';
@@ -75,6 +76,13 @@ export class LoginWithOAuthUseCase {
       };
     }
 
+    if (existingByEmail) {
+      throw new OAuthEmailAlreadyRegisteredError(
+        profile.email,
+        this.providerLabel(existingByEmail.provider),
+      );
+    }
+
     const userId = randomUUID();
     const credential = await this.credentialRepository.create({
       userId,
@@ -99,6 +107,17 @@ export class LoginWithOAuthUseCase {
     });
 
     return this.issueSession(credential);
+  }
+
+  private providerLabel(provider: AuthProvider): string {
+    switch (provider) {
+      case AuthProvider.GOOGLE:
+        return 'Google';
+      case AuthProvider.GITHUB:
+        return 'GitHub';
+      default:
+        return 'email y contraseña';
+    }
   }
 
   private resolveProvider(provider: string): OAuthProviderPort {

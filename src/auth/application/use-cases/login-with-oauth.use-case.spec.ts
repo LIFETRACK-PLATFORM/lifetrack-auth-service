@@ -184,4 +184,24 @@ describe('LoginWithOAuthUseCase', () => {
     }
     expect(oauthLinkTokenRepository.create).toHaveBeenCalled();
   });
+
+  it('rechaza con error claro cuando el email ya existe con otro proveedor OAuth', async () => {
+    credentialRepository.findByProvider.mockResolvedValue(null);
+    credentialRepository.findByEmail.mockResolvedValue(
+      buildOAuthCredential({
+        provider: AuthProvider.GITHUB,
+        providerId: 'github-sub-1',
+        email: googleProfile.email,
+      }),
+    );
+
+    await expect(
+      useCase.execute({
+        provider: 'GOOGLE',
+        code: 'auth-code',
+        codeVerifier: 'verifier',
+      }),
+    ).rejects.toThrow(/GitHub/);
+    expect(credentialRepository.create).not.toHaveBeenCalled();
+  });
 });

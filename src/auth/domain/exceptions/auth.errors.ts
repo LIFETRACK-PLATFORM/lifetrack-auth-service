@@ -87,3 +87,11 @@ export class NoPasswordSetError extends DomainError {
     super('Credenciales inválidas');
   }
 }
+
+export class OAuthEmailAlreadyRegisteredError extends DomainError {
+  constructor(email: string, existingProvider: string) {
+    super(
+      `Ya existe una cuenta con el email ${email} registrada con ${existingProvider}. Inicia sesión con ese proveedor.`,
+    );
+  }
+}

@@ -14,6 +14,7 @@ import {
   InvalidEmailVerificationTokenError,
   InvalidLinkTokenError,
   NoPasswordSetError,
+  OAuthEmailAlreadyRegisteredError,
 } from '../../domain/exceptions/auth.errors';
 
 type DomainErrorConstructor = new (...args: unknown[]) => DomainError;
@@ -30,6 +31,7 @@ const ERROR_CODE_MAP = new Map<DomainErrorConstructor, GrpcStatus>([
   [InvalidEmailVerificationTokenError, GrpcStatus.UNAUTHENTICATED],
   [InvalidLinkTokenError, GrpcStatus.UNAUTHENTICATED],
   [NoPasswordSetError, GrpcStatus.UNAUTHENTICATED],
+  [OAuthEmailAlreadyRegisteredError, GrpcStatus.ALREADY_EXISTS],
 ]);
 
 @Catch(DomainError)
