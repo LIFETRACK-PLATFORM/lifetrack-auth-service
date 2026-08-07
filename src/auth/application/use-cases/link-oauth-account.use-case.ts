@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { parseAuthProvider } from '../../domain/entities/credential.entity';
 import {
   InvalidCredentialsError,
   InactiveAccountError,
@@ -24,7 +25,9 @@ export class LinkOAuthAccountUseCase {
   ) {}
 
   async execute(input: LinkOAuthAccountInput): Promise<LoginResult> {
-    const tokenHash = createHash('sha256').update(input.linkToken).digest('hex');
+    const tokenHash = createHash('sha256')
+      .update(input.linkToken)
+      .digest('hex');
     const linkToken =
       await this.oauthLinkTokenRepository.findByTokenHash(tokenHash);
 
@@ -32,7 +35,9 @@ export class LinkOAuthAccountUseCase {
       throw new InvalidLinkTokenError();
     }
 
-    if (linkToken.provider !== input.provider.toUpperCase()) {
+    const provider = parseAuthProvider(input.provider);
+
+    if (linkToken.provider !== provider) {
       throw new InvalidLinkTokenError();
     }
 

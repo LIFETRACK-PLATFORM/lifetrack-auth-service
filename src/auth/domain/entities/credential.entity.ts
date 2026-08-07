@@ -23,6 +23,19 @@ export enum AuthProvider {
   GITHUB = 'GITHUB',
 }
 
+export function parseAuthProvider(value: string): AuthProvider {
+  const normalized = value.trim().toUpperCase();
+  if (normalized === 'GOOGLE') {
+    return AuthProvider.GOOGLE;
+  }
+  if (normalized === 'GITHUB') {
+    return AuthProvider.GITHUB;
+  }
+  throw new InvalidCredentialDataError(
+    `Proveedor OAuth no soportado: ${value}`,
+  );
+}
+
 export type CredentialProps = {
   userId: string;
   email: string;
@@ -47,10 +60,7 @@ export class CredentialEntity extends AggregateRoot<CredentialProps> {
         'Las credenciales locales requieren hash de contraseña',
       );
     }
-    if (
-      props.provider !== AuthProvider.LOCAL &&
-      !props.providerId
-    ) {
+    if (props.provider !== AuthProvider.LOCAL && !props.providerId) {
       throw new InvalidCredentialDataError(
         'Las credenciales OAuth requieren providerId',
       );

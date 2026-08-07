@@ -4,6 +4,7 @@ import {
   AuthRole,
   CredentialEntity,
   CredentialStatus,
+  parseAuthProvider,
 } from '../../domain/entities/credential.entity';
 import {
   InactiveAccountError,
@@ -101,7 +102,7 @@ export class LoginWithOAuthUseCase {
   }
 
   private resolveProvider(provider: string): OAuthProviderPort {
-    switch (provider.toUpperCase()) {
+    switch (parseAuthProvider(provider)) {
       case AuthProvider.GOOGLE:
         return this.googleOAuthProvider;
       case AuthProvider.GITHUB:
@@ -132,7 +133,9 @@ export class LoginWithOAuthUseCase {
     return token;
   }
 
-  private async issueSession(credential: CredentialEntity): Promise<LoginResult> {
+  private async issueSession(
+    credential: CredentialEntity,
+  ): Promise<LoginResult> {
     const accessToken = await this.tokenService.sign({
       sub: credential.userId,
       email: credential.email,

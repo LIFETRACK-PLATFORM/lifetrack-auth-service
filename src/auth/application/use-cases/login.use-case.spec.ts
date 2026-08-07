@@ -12,6 +12,15 @@ import {
   CredentialEntity,
   CredentialStatus,
 } from '../../domain/entities/credential.entity';
+import type { LoginResult } from '../dtos/login-result';
+
+function expectAuthenticatedSession(result: LoginResult) {
+  expect(result.status).toBe('AUTHENTICATED');
+  if (result.status !== 'AUTHENTICATED') {
+    throw new Error('Se esperaba una sesión autenticada');
+  }
+  return result.session;
+}
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60_000;
@@ -128,8 +137,9 @@ describe('LoginUseCase', () => {
       password: 'correct-password',
     });
 
-    expect(result.session.accessToken).toBe('access-token');
-    expect(result.session.refreshToken).toBe('refresh-token');
+    const session = expectAuthenticatedSession(result);
+    expect(session.accessToken).toBe('access-token');
+    expect(session.refreshToken).toBe('refresh-token');
     expect(refreshTokenRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         credentialId: credential.id,
@@ -203,7 +213,7 @@ describe('LoginUseCase', () => {
       password: 'correct-password',
     });
 
-    expect(result.session.accessToken).toBe('access-token');
+    expect(expectAuthenticatedSession(result).accessToken).toBe('access-token');
   });
 
   it('rechaza login local en cuenta solo-OAuth con mensaje genérico', async () => {
@@ -280,7 +290,7 @@ describe('LoginUseCase', () => {
       password: 'correct-password',
     });
 
-    expect(result.session.accessToken).toBe('access-token');
+    expect(expectAuthenticatedSession(result).accessToken).toBe('access-token');
   });
 
   it('reinicia el contador de intentos fallidos tras un login exitoso', async () => {
