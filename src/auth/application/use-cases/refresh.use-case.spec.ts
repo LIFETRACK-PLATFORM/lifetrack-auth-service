@@ -3,6 +3,7 @@ import { InvalidRefreshTokenError } from '../../domain/exceptions/auth.errors';
 import { RefreshTokenEntity } from '../../domain/entities/refresh-token.entity';
 import {
   AuthRole,
+  AuthProvider,
   CredentialEntity,
   CredentialStatus,
 } from '../../domain/entities/credential.entity';
@@ -13,6 +14,8 @@ function buildCredential(status: CredentialStatus = CredentialStatus.ACTIVE) {
       userId: 'user-1',
       email: 'alice@lifetrack.dev',
       passwordHash: 'hashed-password',
+      provider: AuthProvider.LOCAL,
+      providerId: null,
       roles: [AuthRole.USER],
       status,
       failedLoginAttempts: 0,

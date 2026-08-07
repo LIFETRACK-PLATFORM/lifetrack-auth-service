@@ -3,6 +3,7 @@ import { ConfirmEmailUseCase } from './confirm-email.use-case';
 import { InvalidEmailVerificationTokenError } from '../../domain/exceptions/auth.errors';
 import {
   AuthRole,
+  AuthProvider,
   CredentialEntity,
   CredentialStatus,
 } from '../../domain/entities/credential.entity';
@@ -19,6 +20,8 @@ function buildCredential(
       userId: 'user-1',
       email: 'alice@lifetrack.dev',
       passwordHash: 'hashed-password',
+      provider: AuthProvider.LOCAL,
+      providerId: null,
       roles: [AuthRole.USER],
       status: overrides.status ?? CredentialStatus.PENDING_VERIFICATION,
       failedLoginAttempts: 0,

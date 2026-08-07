@@ -1,5 +1,6 @@
 import { Credential as PrismaCredential } from 'generated/prisma/client';
 import {
+  AuthProvider,
   AuthRole,
   CredentialEntity,
   CredentialStatus,
@@ -12,6 +13,8 @@ export class CredentialMapper {
         userId: raw.userId,
         email: raw.email,
         passwordHash: raw.passwordHash,
+        provider: raw.provider as AuthProvider,
+        providerId: raw.providerId,
         roles: raw.roles as AuthRole[],
         status: raw.status as CredentialStatus,
         emailVerifiedAt: raw.emailVerifiedAt,
@@ -29,6 +32,8 @@ export class CredentialMapper {
       userId: domain.userId,
       email: domain.email,
       passwordHash: domain.passwordHash,
+      provider: domain.provider,
+      providerId: domain.providerId,
       roles: domain.roles,
       status: domain.status,
       emailVerifiedAt: domain.emailVerifiedAt,

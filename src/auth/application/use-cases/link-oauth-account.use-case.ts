@@ -1,69 +1,65 @@
+import { createHash } from 'crypto';
 import {
   InvalidCredentialsError,
   InactiveAccountError,
-  AccountLockedError,
-  EmailNotVerifiedError,
-  NoPasswordSetError,
+  InvalidLinkTokenError,
 } from '../../domain/exceptions/auth.errors';
 import type { CredentialRepositoryPort } from '../../domain/ports/credential.repository.port';
+import type { OAuthLinkTokenRepositoryPort } from '../../domain/ports/oauth-link-token.repository.port';
 import type { PasswordHasherPort } from '../../domain/ports/password-hasher.port';
 import type { TokenServicePort } from '../../domain/ports/token.service.port';
 import type { RefreshTokenServicePort } from '../../domain/ports/refresh-token.service.port';
 import type { RefreshTokenRepositoryPort } from '../../domain/ports/refresh-token.repository.port';
-import type { LoginInput } from '../dtos/login.input';
 import type { LoginResult } from '../dtos/login-result';
+import type { LinkOAuthAccountInput } from '../dtos/link-oauth-account.input';
 
-// Hash bcrypt de un valor arbitrario, usado para mantener el tiempo de
-// respuesta constante cuando el email no existe (evita enumeración por timing).
-const DUMMY_PASSWORD_HASH =
-  '$2b$12$rTG6.Buk/81aSlbYwxH2tOHHs6b.TMfB9VDFkDAxdnQuPiEnC3Pne';
-
-export class LoginUseCase {
+export class LinkOAuthAccountUseCase {
   constructor(
+    private readonly oauthLinkTokenRepository: OAuthLinkTokenRepositoryPort,
     private readonly credentialRepository: CredentialRepositoryPort,
     private readonly passwordHasher: PasswordHasherPort,
     private readonly tokenService: TokenServicePort,
     private readonly refreshTokenService: RefreshTokenServicePort,
     private readonly refreshTokenRepository: RefreshTokenRepositoryPort,
-    private readonly maxLoginAttempts: number,
-    private readonly loginLockoutDurationMs: number,
   ) {}
 
-  async execute(input: LoginInput): Promise<LoginResult> {
-    const credential = await this.credentialRepository.findByEmail(input.email);
+  async execute(input: LinkOAuthAccountInput): Promise<LoginResult> {
+    const tokenHash = createHash('sha256').update(input.linkToken).digest('hex');
+    const linkToken =
+      await this.oauthLinkTokenRepository.findByTokenHash(tokenHash);
 
-    if (credential?.isLocked()) {
-      throw new AccountLockedError();
+    if (!linkToken?.isValid()) {
+      throw new InvalidLinkTokenError();
     }
 
-    if (credential && !credential.hasPassword()) {
-      throw new NoPasswordSetError();
+    if (linkToken.provider !== input.provider.toUpperCase()) {
+      throw new InvalidLinkTokenError();
+    }
+
+    const credential = await this.credentialRepository.findById(
+      linkToken.credentialId,
+    );
+
+    if (!credential?.hasPassword()) {
+      throw new InvalidLinkTokenError();
     }
 
     const passwordIsValid = await this.passwordHasher.compare(
       input.password,
-      credential?.passwordHash ?? DUMMY_PASSWORD_HASH,
+      credential.passwordHash!,
     );
 
-    if (!credential || !passwordIsValid) {
-      if (credential) {
-        credential.registerFailedAttempt(
-          this.maxLoginAttempts,
-          this.loginLockoutDurationMs,
-        );
-        await this.credentialRepository.update(credential);
-      }
+    if (!passwordIsValid) {
       throw new InvalidCredentialsError();
     }
-    if (credential.isPendingVerification()) {
-      throw new EmailNotVerifiedError();
-    }
+
     if (!credential.isActive()) {
       throw new InactiveAccountError();
     }
 
-    credential.resetFailedAttempts();
+    credential.linkOAuthProvider(linkToken.provider, linkToken.providerId);
     await this.credentialRepository.update(credential);
+    await this.oauthLinkTokenRepository.markAsUsed(linkToken.id);
 
     const accessToken = await this.tokenService.sign({
       sub: credential.userId,

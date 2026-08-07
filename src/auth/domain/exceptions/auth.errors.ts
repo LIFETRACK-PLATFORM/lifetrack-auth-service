@@ -69,3 +69,21 @@ export class AccountAlreadyVerifiedError extends DomainError {
     );
   }
 }
+
+export class AccountLinkRequiredError extends DomainError {
+  constructor() {
+    super('Se requiere vincular la cuenta OAuth con tu cuenta local existente');
+  }
+}
+
+export class InvalidLinkTokenError extends DomainError {
+  constructor() {
+    super('El enlace de vinculación no es válido o ya expiró');
+  }
+}
+
+export class NoPasswordSetError extends DomainError {
+  constructor() {
+    super('Credenciales inválidas');
+  }
+}

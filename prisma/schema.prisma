@@ -26,11 +26,19 @@ enum CredentialStatus {
   PENDING_VERIFICATION
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  GITHUB
+}
+
 model Credential {
   id                      String                   @id @default(uuid())
   userId                  String                   @unique
   email                   String                   @unique
-  passwordHash            String
+  passwordHash            String?
+  provider                AuthProvider             @default(LOCAL)
+  providerId              String?
   roles                   AuthRole[]               @default([USER])
   status                  CredentialStatus         @default(ACTIVE)
   emailVerifiedAt         DateTime?
@@ -41,6 +49,23 @@ model Credential {
   refreshTokens           RefreshToken[]
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  oauthLinkTokens         OAuthLinkToken[]
+
+  @@unique([provider, providerId])
+}
+
+model OAuthLinkToken {
+  id           String     @id @default(uuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id])
+  provider     AuthProvider
+  providerId   String
+  tokenHash    String     @unique
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime   @default(now())
+
+  @@index([credentialId])
 }
 
 model RefreshToken {

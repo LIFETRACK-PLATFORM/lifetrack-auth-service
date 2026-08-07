@@ -20,7 +20,11 @@ import { ResetPasswordUseCase } from 'src/auth/application/use-cases/reset-passw
 import { ConfirmEmailUseCase } from 'src/auth/application/use-cases/confirm-email.use-case';
 import { ResendVerificationUseCase } from 'src/auth/application/use-cases/resend-verification.use-case';
 import { GetSessionUseCase } from 'src/auth/application/use-cases/get-session.use-case';
+import { LoginWithOAuthUseCase } from 'src/auth/application/use-cases/login-with-oauth.use-case';
+import { LinkOAuthAccountUseCase } from 'src/auth/application/use-cases/link-oauth-account.use-case';
 import { MeDto } from '../dtos/me.dto';
+import { LoginWithOAuthDto } from '../dtos/login-with-oauth.dto';
+import { LinkOAuthAccountDto } from '../dtos/link-oauth-account.dto';
 
 @Controller()
 @UseFilters(DomainExceptionFilter)
@@ -36,6 +40,8 @@ export class AuthController {
     private readonly confirmEmailUseCase: ConfirmEmailUseCase,
     private readonly resendVerificationUseCase: ResendVerificationUseCase,
     private readonly getSessionUseCase: GetSessionUseCase,
+    private readonly loginWithOAuthUseCase: LoginWithOAuthUseCase,
+    private readonly linkOAuthAccountUseCase: LinkOAuthAccountUseCase,
   ) {}
 
   @GrpcMethod('AuthService', 'Register')
@@ -44,8 +50,12 @@ export class AuthController {
   }
 
   @GrpcMethod('AuthService', 'Login')
-  login(data: LoginDto) {
-    return this.loginUseCase.execute(data);
+  async login(data: LoginDto) {
+    const result = await this.loginUseCase.execute(data);
+    if (result.status !== 'AUTHENTICATED') {
+      throw new Error('Estado de login inesperado');
+    }
+    return result.session;
   }
 
   @GrpcMethod('AuthService', 'Refresh')
@@ -91,5 +101,35 @@ export class AuthController {
   async resendVerification(data: ResendVerificationDto) {
     await this.resendVerificationUseCase.execute(data);
     return { success: true };
+  }
+
+  @GrpcMethod('AuthService', 'LoginWithOAuth')
+  async loginWithOAuth(data: LoginWithOAuthDto) {
+    const result = await this.loginWithOAuthUseCase.execute(data);
+    if (result.status === 'AUTHENTICATED') {
+      return {
+        status: result.status,
+        accessToken: result.session.accessToken,
+        refreshToken: result.session.refreshToken,
+        userId: result.session.userId,
+        email: result.session.email,
+        roles: result.session.roles,
+        credentialStatus: result.session.status,
+      };
+    }
+    return {
+      status: result.status,
+      linkToken: result.linkToken,
+      provider: result.provider,
+    };
+  }
+
+  @GrpcMethod('AuthService', 'LinkOAuthAccount')
+  async linkOAuthAccount(data: LinkOAuthAccountDto) {
+    const result = await this.linkOAuthAccountUseCase.execute(data);
+    if (result.status !== 'AUTHENTICATED') {
+      throw new Error('Estado de vinculación inesperado');
+    }
+    return result.session;
   }
 }

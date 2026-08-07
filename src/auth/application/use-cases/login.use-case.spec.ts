@@ -4,9 +4,11 @@ import {
   InactiveAccountError,
   AccountLockedError,
   EmailNotVerifiedError,
+  NoPasswordSetError,
 } from '../../domain/exceptions/auth.errors';
 import {
   AuthRole,
+  AuthProvider,
   CredentialEntity,
   CredentialStatus,
 } from '../../domain/entities/credential.entity';
@@ -26,6 +28,8 @@ function buildCredential(
       userId: 'user-1',
       email: 'alice@lifetrack.dev',
       passwordHash: 'hashed-password',
+      provider: AuthProvider.LOCAL,
+      providerId: null,
       roles: [AuthRole.USER],
       status: overrides.status ?? CredentialStatus.ACTIVE,
       failedLoginAttempts: overrides.failedLoginAttempts ?? 0,
@@ -40,6 +44,7 @@ function buildCredential(
 function createCredentialRepositoryMock() {
   return {
     findByEmail: jest.fn(),
+    findByProvider: jest.fn(),
     findById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -123,8 +128,8 @@ describe('LoginUseCase', () => {
       password: 'correct-password',
     });
 
-    expect(result.accessToken).toBe('access-token');
-    expect(result.refreshToken).toBe('refresh-token');
+    expect(result.session.accessToken).toBe('access-token');
+    expect(result.session.refreshToken).toBe('refresh-token');
     expect(refreshTokenRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         credentialId: credential.id,
@@ -198,7 +203,32 @@ describe('LoginUseCase', () => {
       password: 'correct-password',
     });
 
-    expect(result.accessToken).toBe('access-token');
+    expect(result.session.accessToken).toBe('access-token');
+  });
+
+  it('rechaza login local en cuenta solo-OAuth con mensaje genérico', async () => {
+    const credential = new CredentialEntity(
+      {
+        userId: 'user-oauth',
+        email: 'oauth@lifetrack.dev',
+        passwordHash: null,
+        provider: AuthProvider.GOOGLE,
+        providerId: 'google-1',
+        roles: [AuthRole.USER],
+        status: CredentialStatus.ACTIVE,
+        failedLoginAttempts: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      'credential-oauth',
+    );
+    credentialRepository.findByEmail.mockResolvedValue(credential);
+
+    await expect(
+      useCase.execute({ email: credential.email, password: 'anything' }),
+    ).rejects.toThrow(NoPasswordSetError);
+
+    expect(passwordHasher.compare).not.toHaveBeenCalled();
   });
 
   it('bloquea la cuenta al alcanzar el umbral de intentos fallidos', async () => {
@@ -250,7 +280,7 @@ describe('LoginUseCase', () => {
       password: 'correct-password',
     });
 
-    expect(result.accessToken).toBe('access-token');
+    expect(result.session.accessToken).toBe('access-token');
   });
 
   it('reinicia el contador de intentos fallidos tras un login exitoso', async () => {
