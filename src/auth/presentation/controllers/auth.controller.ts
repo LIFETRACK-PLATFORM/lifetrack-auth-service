@@ -22,9 +22,11 @@ import { ResendVerificationUseCase } from 'src/auth/application/use-cases/resend
 import { GetSessionUseCase } from 'src/auth/application/use-cases/get-session.use-case';
 import { LoginWithOAuthUseCase } from 'src/auth/application/use-cases/login-with-oauth.use-case';
 import { LinkOAuthAccountUseCase } from 'src/auth/application/use-cases/link-oauth-account.use-case';
+import { SwitchOAuthProviderUseCase } from 'src/auth/application/use-cases/switch-oauth-provider.use-case';
 import { MeDto } from '../dtos/me.dto';
 import { LoginWithOAuthDto } from '../dtos/login-with-oauth.dto';
 import { LinkOAuthAccountDto } from '../dtos/link-oauth-account.dto';
+import { SwitchOAuthProviderDto } from '../dtos/switch-oauth-provider.dto';
 
 @Controller()
 @UseFilters(DomainExceptionFilter)
@@ -42,6 +44,7 @@ export class AuthController {
     private readonly getSessionUseCase: GetSessionUseCase,
     private readonly loginWithOAuthUseCase: LoginWithOAuthUseCase,
     private readonly linkOAuthAccountUseCase: LinkOAuthAccountUseCase,
+    private readonly switchOAuthProviderUseCase: SwitchOAuthProviderUseCase,
   ) {}
 
   @GrpcMethod('AuthService', 'Register')
@@ -131,5 +134,10 @@ export class AuthController {
       throw new Error('Estado de vinculación inesperado');
     }
     return result.session;
+  }
+
+  @GrpcMethod('AuthService', 'SwitchOAuthProvider')
+  switchOAuthProvider(data: SwitchOAuthProviderDto) {
+    return this.switchOAuthProviderUseCase.execute(data);
   }
 }

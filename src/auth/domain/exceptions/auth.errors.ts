@@ -95,3 +95,17 @@ export class OAuthEmailAlreadyRegisteredError extends DomainError {
     );
   }
 }
+
+export class OAuthEmailMismatchError extends DomainError {
+  constructor() {
+    super(
+      'El email verificado por el proveedor no coincide con el de tu cuenta actual',
+    );
+  }
+}
+
+export class OAuthIdentityAlreadyLinkedError extends DomainError {
+  constructor(existingProvider: string) {
+    super(`Esa cuenta de ${existingProvider} ya está vinculada a otro usuario`);
+  }
+}

@@ -63,6 +63,38 @@ describe('CredentialEntity', () => {
     expect(credential.hasPassword()).toBe(true);
   });
 
+  it('linkOAuthProvider() permite cambiar de un proveedor OAuth a otro', () => {
+    const credential = new CredentialEntity({
+      ...baseProps,
+      passwordHash: null,
+      provider: AuthProvider.GITHUB,
+      providerId: 'github-sub-1',
+    });
+    credential.linkOAuthProvider(AuthProvider.GOOGLE, 'google-sub-1');
+    expect(credential.provider).toBe(AuthProvider.GOOGLE);
+    expect(credential.providerId).toBe('google-sub-1');
+  });
+
+  it('linkOAuthProvider() lanza error si la cuenta no está activa', () => {
+    const credential = new CredentialEntity({
+      ...baseProps,
+      passwordHash: null,
+      provider: AuthProvider.GITHUB,
+      providerId: 'github-sub-1',
+      status: CredentialStatus.DISABLED,
+    });
+    expect(() =>
+      credential.linkOAuthProvider(AuthProvider.GOOGLE, 'google-sub-1'),
+    ).toThrow('Solo cuentas activas pueden vincularse a un nuevo proveedor');
+  });
+
+  it('linkOAuthProvider() lanza error al intentar vincular hacia LOCAL', () => {
+    const credential = new CredentialEntity(baseProps);
+    expect(() =>
+      credential.linkOAuthProvider(AuthProvider.LOCAL, 'n/a'),
+    ).toThrow('No se puede vincular el proveedor LOCAL');
+  });
+
   it('lanza error si no tiene al menos un rol', () => {
     expect(() => new CredentialEntity({ ...baseProps, roles: [] })).toThrow(
       'Se requiere al menos un rol',
