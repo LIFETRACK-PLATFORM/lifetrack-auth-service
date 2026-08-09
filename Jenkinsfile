@@ -60,14 +60,18 @@ pipeline {
 
     stage("Docker Build") {
       steps {
-        sh "docker build -t auth-service:latest ."
+        lock('docker-build') {
+          sh "docker build -t auth-service:latest ."
+        }
       }
     }
   }
 
   post {
     always {
-      sh 'docker image prune -f'
+      lock('docker-build') {
+        sh 'docker image prune -f'
+      }
     }
     success {
       echo "Pipeline OK - auth-service #${env.BUILD_NUMBER}"
