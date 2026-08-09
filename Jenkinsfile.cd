@@ -14,7 +14,7 @@ pipeline {
   stages {
     stage("Docker Build") {
       steps {
-        sh "docker build -t ${IMAGE}:latest ."
+        sh "docker buildx build --builder lifetrack-builder -t ${IMAGE}:latest --load ."
       }
     }
 
@@ -80,7 +80,8 @@ pipeline {
 
   post {
     always {
-      sh 'docker image prune -f'
+      sh 'docker image prune -af'
+      sh 'docker buildx prune -af --builder lifetrack-builder'
     }
     success {
       echo "Deploy OK - auth-service #${env.BUILD_NUMBER}"
