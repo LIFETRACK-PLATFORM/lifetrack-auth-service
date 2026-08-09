@@ -71,8 +71,8 @@ pipeline {
 
   post {
     always {
-      sh 'docker image prune -af'
-      sh 'docker buildx prune -af --builder lifetrack-builder'
+      sh 'docker image prune -af || true'
+      sh 'docker buildx prune -af --builder lifetrack-builder || true'
     }
     success {
       echo "Pipeline OK - auth-service #${env.BUILD_NUMBER}"
