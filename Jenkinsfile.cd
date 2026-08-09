@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  options {
+    disableConcurrentBuilds()
+  }
+
   environment {
     IMAGE = "ghcr.io/lifetrack-platform/auth-service"
     VPS   = "95.216.164.54"
@@ -10,7 +14,7 @@ pipeline {
   stages {
     stage("Docker Build") {
       steps {
-        sh "docker build -t ${IMAGE}:latest ."
+        sh "docker buildx build --builder lifetrack-builder -t ${IMAGE}:latest --load ."
       }
     }
 
@@ -76,7 +80,8 @@ pipeline {
 
   post {
     always {
-      sh 'docker image prune -f'
+      sh 'docker image prune -af || true'
+      sh 'docker buildx prune -af --builder lifetrack-builder || true'
     }
     success {
       echo "Deploy OK - auth-service #${env.BUILD_NUMBER}"
