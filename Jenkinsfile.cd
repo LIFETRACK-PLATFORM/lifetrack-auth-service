@@ -10,15 +10,19 @@ pipeline {
   stages {
     stage("Docker Build") {
       steps {
-        sh "docker build -t ${IMAGE}:latest ."
+        lock('docker-build') {
+          sh "docker build -t ${IMAGE}:latest ."
+        }
       }
     }
 
     stage("Docker Push") {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'github-token-userpass', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-          sh "echo ${GH_TOKEN} | docker login ghcr.io -u ${GH_USER} --password-stdin"
-          sh "docker push ${IMAGE}:latest"
+        lock('docker-build') {
+          withCredentials([usernamePassword(credentialsId: 'github-token-userpass', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+            sh "echo ${GH_TOKEN} | docker login ghcr.io -u ${GH_USER} --password-stdin"
+            sh "docker push ${IMAGE}:latest"
+          }
         }
       }
     }
@@ -76,7 +80,9 @@ pipeline {
 
   post {
     always {
-      sh 'docker image prune -f'
+      lock('docker-build') {
+        sh 'docker image prune -f'
+      }
     }
     success {
       echo "Deploy OK - auth-service #${env.BUILD_NUMBER}"
