@@ -8,43 +8,67 @@ pipeline {
   stages {
     stage("Install") {
       steps {
-        sh "npm install -g pnpm@10.21.0"
-        sh "pnpm install --frozen-lockfile"
+        sh '''
+          set -e
+          corepack enable
+          corepack prepare pnpm@10.21.0 --activate
+          pnpm --version
+          pnpm install --frozen-lockfile
+        '''
       }
     }
 
     stage("Prisma Generate") {
       steps {
-        sh "DATABASE_URL=postgresql://ci:ci@localhost:5432/ci pnpm exec prisma generate"
+        sh '''
+          set -e
+          corepack enable
+          DATABASE_URL=postgresql://ci:ci@localhost:5432/ci pnpm exec prisma generate
+        '''
       }
     }
 
     stage("Lint") {
       steps {
-        sh "pnpm run lint"
+        sh '''
+          set -e
+          corepack enable
+          pnpm run lint
+        '''
       }
     }
 
     stage("Test") {
       steps {
-        sh "pnpm run test:cov"
+        sh '''
+          set -e
+          corepack enable
+          pnpm run test:cov
+        '''
       }
     }
 
     stage("Build") {
       steps {
-        sh "pnpm run build"
+        sh '''
+          set -e
+          corepack enable
+          pnpm run build
+        '''
       }
     }
 
     stage("Docker Build") {
       steps {
-        sh "docker build -t auth-service:${env.BUILD_NUMBER} ."
+        sh "docker build -t auth-service:latest ."
       }
     }
   }
 
   post {
+    always {
+      sh 'docker image prune -f'
+    }
     success {
       echo "Pipeline OK - auth-service #${env.BUILD_NUMBER}"
       githubNotify credentialsId: 'github-token-userpass', status: 'SUCCESS', context: 'jenkins-ci', description: 'CI passed'
