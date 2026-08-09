@@ -10,7 +10,7 @@ pipeline {
   stages {
     stage("Docker Build") {
       steps {
-        sh "docker build -t ${IMAGE}:${env.BUILD_NUMBER} ."
+        sh "docker build -t ${IMAGE}:latest ."
       }
     }
 
@@ -18,7 +18,7 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: 'github-token-userpass', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
           sh "echo ${GH_TOKEN} | docker login ghcr.io -u ${GH_USER} --password-stdin"
-          sh "docker push ${IMAGE}:${env.BUILD_NUMBER}"
+          sh "docker push ${IMAGE}:latest"
         }
       }
     }
@@ -42,10 +42,11 @@ pipeline {
         sshagent(['vps-ssh']) {
           sh """
             ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS} '
+              docker pull ${IMAGE}:latest
               docker run --rm \
                 --network lifetrack-net \
                 --env-file /home/ricardo/lifetrack-infra/envs/auth-service.env \
-                ${IMAGE}:${env.BUILD_NUMBER} \
+                ${IMAGE}:latest \
                 node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
             '
           """
@@ -64,7 +65,8 @@ pipeline {
                 --network lifetrack-net \
                 --restart unless-stopped \
                 --env-file /home/ricardo/lifetrack-infra/envs/auth-service.env \
-                ${IMAGE}:${env.BUILD_NUMBER}
+                ${IMAGE}:latest
+              docker image prune -f
             '
           """
         }
@@ -73,6 +75,9 @@ pipeline {
   }
 
   post {
+    always {
+      sh 'docker image prune -f'
+    }
     success {
       echo "Deploy OK - auth-service #${env.BUILD_NUMBER}"
     }
