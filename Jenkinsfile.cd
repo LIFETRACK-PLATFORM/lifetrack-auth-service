@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  options {
+    disableConcurrentBuilds()
+  }
+
   environment {
     IMAGE = "ghcr.io/lifetrack-platform/auth-service"
     VPS   = "95.216.164.54"
