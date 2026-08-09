@@ -22,7 +22,6 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/proto ./src/proto
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/generated ./generated
 COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
