@@ -64,7 +64,7 @@ pipeline {
 
     stage("Docker Build") {
       steps {
-        sh "docker buildx build --builder lifetrack-builder -t auth-service:latest --load ."
+        sh "docker buildx build --builder lifetrack-builder --provenance=false --sbom=false -t auth-service:latest --load ."
       }
     }
   }

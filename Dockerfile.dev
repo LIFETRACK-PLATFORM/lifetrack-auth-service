@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* ./
+COPY prisma ./prisma/
+COPY prisma.config.ts ./
+
+RUN echo "node-linker=hoisted" > .npmrc && echo "shamefully-hoist=true" >> .npmrc
+RUN pnpm install
+
+ENV DATABASE_URL=postgresql://lifetrack:devpass123@postgres:5432/auth_db
+RUN pnpm exec prisma generate
+
+COPY . .
+
+EXPOSE 50051
+
+CMD ["pnpm", "run", "start:dev"]
